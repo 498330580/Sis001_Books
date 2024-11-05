@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 
@@ -16,7 +17,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{os.path.join(APP_PATH, 'dat
 
 
 # 创建数据库连接，管理项目
-db = SQLAlchemy(app)
+db_sql = SQLAlchemy(app)
+migrate = Migrate(app, db_sql)
 
 
 @app.route('/')
@@ -25,4 +27,7 @@ def hello_world():  # put application's code here
 
 
 if __name__ == '__main__':
+    # 创建数据库
+    # sql.create_all()
+    # 运行服务
     app.run(debug=True, host='0.0.0.0', port=8100)
