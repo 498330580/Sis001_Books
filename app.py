@@ -10,7 +10,7 @@ from biueprint.book import book_bp_v1
 from biueprint.data import data_bp_v1
 
 # 导入sql表
-from models import book
+from models import book, data
 
 app = Flask(__name__)
 

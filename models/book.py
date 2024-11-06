@@ -53,6 +53,7 @@ class Category(db_sql.Model):
     __tablename__ = 'category'
     id = db_sql.Column(db_sql.Integer, primary_key=True, autoincrement=True)
     name = db_sql.Column(db_sql.String(300), nullable=False)
+    index_float = db_sql.Column(db_sql.Float, nullable=False)
     book_id = db_sql.Column(db_sql.Integer, db_sql.ForeignKey('book.id', ondelete='CASCADE'), nullable=False)
     book = db_sql.relationship('Book', backref='category', cascade='all, delete-orphan')
     content = db_sql.Column(db_sql.Text, nullable=False)
