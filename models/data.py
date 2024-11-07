@@ -15,6 +15,18 @@ class TmpData(db_sql.Model):
     create_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now)
     update_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
+    def to_json(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'url': self.url,
+            'is_crawled': self.is_crawled,
+            'is_sorted': self.is_sorted,
+            'content': self.content,
+            'create_time': self.create_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'update_time': self.update_time.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
 
 # 浏览记录
 class History(db_sql.Model):
@@ -23,3 +35,11 @@ class History(db_sql.Model):
     url = db_sql.Column(db_sql.String(500), nullable=False)
     create_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now)
     update_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'url': self.url,
+            'create_time': self.create_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'update_time': self.update_time.strftime('%Y-%m-%d %H:%M:%S')
+        }
