@@ -61,18 +61,29 @@ def v1_search():
     if not search_type:
         return jsonify({'code': 400, 'data': [], 'mess': '没有传入查询类型关键字 type'}), 400
 
-    if search_type == 'url':
+    if search_type == 'url':    # 搜索url
         tmp_data = TmpData.query.filter_by(url=keyword).first()
-        if tmp_data:
-            return jsonify({'code': 200, 'data': tmp_data.to_json(), 'mess': '获取成功'}), 200
-        else:
+        if not tmp_data:
             return jsonify({'code': 404, 'data': [], 'mess': '数据不存在'}), 404
-    elif search_type == 'name':
+    elif search_type == 'name':     # 查找名称
         tmp_data = TmpData.query.filter(TmpData.name.contains(keyword)).all()
-        return jsonify({'code': 200, 'data': tmp_data.to_json(), 'mess': '获取成功'}), 200
-    elif search_type == 'content':
+    elif search_type == 'content':  # 查找内容
         tmp_data = TmpData.query.filter(TmpData.content.contains(keyword)).all()
-        return jsonify({'code': 200, 'data': tmp_data.to_json(), 'mess': '获取成功'}), 200
-    else:
-        tmp_data = TmpData.query.filter(or_(TmpData.name.contains(keyword), TmpData.content.contains(keyword))).all()
+    elif search_type == 'is_url':   # 判断url是否存在
+        tmp_data = TmpData.query.filter(TmpData.url.contains(keyword)).all()
+        if tmp_data:
+            return jsonify({'code': 200, 'data': True, 'mess': '获取成功'}), 200
+        return jsonify({'code': 200, 'data': False, 'mess': '获取成功'}), 200
+    elif search_type == 'all_not_crawled':
+        tmp_data = TmpData.query.filter_by(is_crawled=False).all()
+    elif search_type == 'is_not_sorted':
+        tmp_data = TmpData.query.filter_by(is_sorted=False).all()
+    else:   # 查找所有匹配的名称和内容
+        tmp_data = TmpData.query.filter(
+            or_(
+                TmpData.name.contains(keyword),
+                TmpData.content.contains(keyword)
+            )
+        ).all()
         return jsonify({'code': 200, 'data': tmp_data.to_json(), 'mess': '请传入url参数'}), 200
+    return jsonify({'code': 200, 'data': tmp_data.to_json(), 'mess': '获取成功'}), 200

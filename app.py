@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from config import DevelopmentConfig
 
 # 导入蓝图
-from biueprint.crawl import crawl_bp_v1
+from biueprint.html import crawl_bp_v1
 from biueprint.book import book_bp_v1
 from biueprint.data import data_bp_v1
 
