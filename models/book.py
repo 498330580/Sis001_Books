@@ -1,6 +1,7 @@
 # 小说数据库
 from datetime import datetime
 from exts import db_sql
+from sqlalchemy import asc
 
 
 # 小说作者（一对多），作者有多个小说
@@ -65,12 +66,30 @@ class Book(db_sql.Model):
     book_type_id = db_sql.Column(db_sql.Integer, db_sql.ForeignKey('book_type.id'))
     book_type = db_sql.relationship('BookType', backref='book')
     tag = db_sql.relationship('BookTag', back_populates='book', secondary='book_book_tag')
-    category = db_sql.relationship('Category', backref='book', cascade='all, delete-orphan')
+    category = db_sql.relationship(
+        'Category',
+        back_populates='book',
+        cascade='all, delete-orphan',
+        lazy='dynamic',
+        order_by=lambda: Category.index_float.asc()
+        # order_by=asc('category.index_float')
+    )
     content = db_sql.Column(db_sql.String(500), nullable=False)
     create_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now)
     update_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     def to_json(self):
+        category_list = [
+            {
+                "name": item.name,
+                "index": item.index_float,
+                'create_time': item.create_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'update_time': item.update_time.strftime('%Y-%m-%d %H:%M:%S')
+            } for item in self.category
+        ]
+
+        tag_list = [tag.name for tag in self.tag]
+
         return {
             'id': self.id,
             'name': self.name,
@@ -78,8 +97,8 @@ class Book(db_sql.Model):
             'author': self.author.name,
             'book_type_id': self.book_type_id,
             'book_type': self.book_type.name,
-            'tag': self.tag,
-            'category': self.category,
+            'tag': tag_list,
+            'category': category_list,
             'content': self.content,
             'create_time': self.create_time.strftime('%Y-%m-%d %H:%M:%S'),
             'update_time': self.update_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -93,7 +112,8 @@ class Category(db_sql.Model):
     name = db_sql.Column(db_sql.String(300), nullable=False)
     index_float = db_sql.Column(db_sql.Float, nullable=False)
     book_id = db_sql.Column(db_sql.Integer, db_sql.ForeignKey('book.id', ondelete='CASCADE'), nullable=False)
-    # book = db_sql.relationship('Book', backref='category', cascade='all, delete-orphan')
+    book = db_sql.relationship('Book', back_populates='category')
+    url = db_sql.Column(db_sql.String(500), nullable=False)
     content = db_sql.Column(db_sql.Text, nullable=False)
     create_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now)
     update_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
@@ -104,6 +124,7 @@ class Category(db_sql.Model):
             'name': self.name,
             'index_float': self.index_float,
             'book_id': self.book_id,
+            'book': self.book,
             'content': self.content,
             'create_time': self.create_time.strftime('%Y-%m-%d %H:%M:%S'),
             'update_time': self.update_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -116,10 +137,3 @@ book_book_tag = db_sql.Table('book_book_tag',
                              db_sql.Column('book_tag_id', db_sql.Integer, db_sql.ForeignKey('book_tag.id'),
                                            primary_key=True)
                              )
-
-# if __name__ == '__main__':
-#     # 测试外键关联
-#     book = Book.query.first()
-#     for i in book.category:
-#         print(i.name)
-#     pass

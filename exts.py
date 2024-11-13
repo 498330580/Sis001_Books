@@ -7,6 +7,14 @@ db_sql = SQLAlchemy()
 
 # 状态码
 class GetCode:
+    """
+    响应状态码\n
+    NotFound    数据不存在\n
+    OK          获取成功\n
+    Add_Update  创建或更新成功\n
+    Del         删除成功\n
+    Error       请求错误
+    """
     NotFound = 404  # 不存在
     OK = 200        # 获取成功
     Add_Update = 201       # 创建、更新成功
