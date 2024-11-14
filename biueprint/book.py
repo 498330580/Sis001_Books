@@ -136,6 +136,7 @@ def book_v1_get_update_del(book_id):
         elif request.method == 'DELETE':
             db_sql.session.delete(tmp_data)
             db_sql.session.commit()
+            return return_json(code=_code.Del)
         else:
             return return_json(code=_code.Error)
     else:
@@ -143,18 +144,85 @@ def book_v1_get_update_del(book_id):
 
 
 # 获取所有章节、创建章节
-@book_bp_v1.route('/<int:book_id>', methods=['GET', 'POST'])
-def category_v1_list_add(book_id):
+@category_bp_v1.route('/', methods=['GET', 'POST'])
+def category_v1_list_add():
     if request.method == 'GET':
-        book = Book.query.filter_by(id=book_id).first()
-        if not book:
-            return return_json(code=_code.Error, mess=f"书籍ID:{book_id}不存在")
-        if book.category:
-            category_list = [category_item.to_json() for category_item in book.category]
+        if request.args.get('book_id'):
+            tmp_data = Category.query.filter_by(
+                book_id=request.args.get('book_id')
+            ).order_by(desc(Category.update_time)).all()
         else:
-            category_list = []
-        return return_json(data=category_list)
+            tmp_data = Category.query.order_by(desc(Category.update_time)).all()
+        results_list = [item.to_json() for item in tmp_data]
+        return return_json(data=results_list)
     elif request.method == 'POST' and request.is_json:
-        pass
+        data = request.get_json()
+
+        if not data.get('name'):
+            return return_json(code=_code.Error, mess="error:字段中无name")
+        if not data.get('index_float'):
+            return return_json(code=_code.Error, mess="error:字段中无index_float")
+        if not data.get('book_id'):
+            return return_json(code=_code.Error, mess="error:字段中无book_id")
+        if not data.get('url'):
+            return return_json(code=_code.Error, mess="error:字段中无url")
+        if not data.get('content'):
+            return return_json(code=_code.Error, mess="error:字段中无content")
+
+        # 验证章节是否存在
+        if Category.query.filter_by(url=data.get('url')).first():
+            return return_json(code=_code.Error, data=data, mess="章节已存在")
+
+        # 验证书籍是否存在
+        if not Book.query.get(data.get('book_id')):
+            return return_json(code=_code.Error, data=data, mess="书籍id不存在")
+
+        tmp_data = Category(**data)
+        db_sql.session.add(tmp_data)
+        db_sql.session.commit()
+        return return_json(code=_code.Add_Update, data=data)
     else:
         return return_json(code=_code.Error)
+
+
+# 读取、更新、删除章节
+@category_bp_v1.route('/<int:category_id>', methods=['GET', 'DELETE', 'PUT'])
+def category_v1_get_update_delete(category_id):
+    tmp_data = Category.query.get(category_id)
+    if tmp_data:
+        if request.method == 'GET':
+            return return_json(data=tmp_data.to_json())
+        elif request.method == 'PUT' and request.is_json:
+            data = request.get_json()
+
+            if not data.get('name'):
+                return return_json(code=_code.Error, mess="error:字段中无name")
+            if not data.get('index_float'):
+                return return_json(code=_code.Error, mess="error:字段中无index_float")
+            if not data.get('book_id'):
+                return return_json(code=_code.Error, mess="error:字段中无book_id")
+            if not data.get('url'):
+                return return_json(code=_code.Error, mess="error:字段中无url")
+            if not data.get('content'):
+                return return_json(code=_code.Error, mess="error:字段中无content")
+
+            # 验证书籍是否存在
+            if not Book.query.get(data.get('book_id')):
+                return return_json(code=_code.Error, data=data, mess="书籍id不存在")
+
+            tmp_data.name = data.get('name')
+            tmp_data.index_float = data.get('index_float')
+            tmp_data.book_id = data.get('book_id')
+            tmp_data.url = data.get('url')
+            tmp_data.content = data.get('content')
+
+            db_sql.session.commit()
+            return return_json(code=_code.Add_Update, data=data)
+        elif request.method == 'DELETE':
+            db_sql.session.delete(tmp_data)
+            db_sql.session.commit()
+            return return_json(code=_code.Del)
+        else:
+            return return_json(code=_code.Error)
+    else:
+        return return_json(code=_code.NotFound)

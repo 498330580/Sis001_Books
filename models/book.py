@@ -1,7 +1,6 @@
 # 小说数据库
 from datetime import datetime
 from exts import db_sql
-from sqlalchemy import asc
 
 
 # 小说作者（一对多），作者有多个小说
@@ -119,12 +118,16 @@ class Category(db_sql.Model):
     update_time = db_sql.Column(db_sql.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     def to_json(self):
+        tag_list = [tag.name for tag in self.book.tag]
         return {
             'id': self.id,
             'name': self.name,
             'index_float': self.index_float,
             'book_id': self.book_id,
-            'book': self.book,
+            'book': self.book.name,
+            'book_author': self.book.author.name,
+            'book_type': self.book.book_type.name,
+            'book_tag': tag_list,
             'content': self.content,
             'create_time': self.create_time.strftime('%Y-%m-%d %H:%M:%S'),
             'update_time': self.update_time.strftime('%Y-%m-%d %H:%M:%S')

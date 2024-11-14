@@ -5,8 +5,8 @@ from flask_migrate import Migrate
 from config import DevelopmentConfig
 
 # 导入蓝图
-from biueprint.html import crawl_bp_v1
-from biueprint.book import book_bp_v1
+# from biueprint.html import crawl_bp_v1
+from biueprint.book import book_bp_v1, category_bp_v1
 from biueprint.data import data_bp_v1, lishi_bp_v1
 
 # 导入sql表
@@ -59,9 +59,10 @@ def bad_request(e):
 
 # 注册蓝图
 # v1
-app.register_blueprint(crawl_bp_v1)     # 注册v1爬取蓝图
+# app.register_blueprint(crawl_bp_v1)     # 注册v1爬取蓝图
 app.register_blueprint(data_bp_v1)     # 注册v1临时数据蓝图
 app.register_blueprint(lishi_bp_v1)     # 注册v1历史数据蓝图
+app.register_blueprint(category_bp_v1)  # 注册章节蓝图
 app.register_blueprint(book_bp_v1)     # 注册书籍蓝图
 
 

@@ -12,7 +12,7 @@ lishi_bp_v1 = Blueprint('lishi_bp_v1', __name__, url_prefix='/api/v1/lishi')
 
 # 获取全部数据、创建新数据
 @data_bp_v1.route('/', methods=['GET', 'POST'])
-def data_v1_list():
+def data_v1_list_add():
     if request.method == 'GET':     # 获取全部数据
         tmp_data = TmpData.query.order_by(desc(TmpData.update_time)).all()
         results_list = [item.to_json() for item in tmp_data]
@@ -20,7 +20,7 @@ def data_v1_list():
     elif request.method == 'POST' and request.is_json:      # 创建新数据
         data = request.get_json()
         if TmpData.query.filter(TmpData.url.contains(data['url'])).all():
-            return return_json(data=data, mess="数据已存在")
+            return return_json(code=_code.Error, data=data, mess="数据已存在")
         tmp_data = TmpData(**data)
         db_sql.session.add(tmp_data)
         db_sql.session.commit()
@@ -31,7 +31,7 @@ def data_v1_list():
 
 # 通过id获取、更新、删除数据
 @data_bp_v1.route('/<int:uid>', methods=['GET', 'PUT', 'DELETE'])
-def data_v1_one(uid):
+def data_v1_get_update_del(uid):
     tmp_data = TmpData.query.get(uid)
     if tmp_data:
         if request.method == 'GET':         # 获取单条数据
@@ -99,7 +99,7 @@ def data_v1_search():
 
 
 @lishi_bp_v1.route('/', methods=['GET', 'POST'])
-def lishi_v1_list():
+def lishi_v1_list_add():
     if request.method == 'GET':
         _type = request.args.get('type')
         _keyword = request.args.get('keyword')
