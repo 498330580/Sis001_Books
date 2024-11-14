@@ -3,7 +3,7 @@ from flask import Blueprint, request
 
 from models.book import Book, Author, BookTag, BookType, Category
 from exts import return_json, _code, db_sql
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 
 # v1版api
 book_bp_v1 = Blueprint('book_bp_v1', __name__, url_prefix='/api/v1/book')
@@ -141,6 +141,26 @@ def book_v1_get_update_del(book_id):
             return return_json(code=_code.Error)
     else:
         return return_json(code=_code.NotFound)
+
+
+# 书籍搜索
+@book_bp_v1.route('/search', methods=['GET'])
+def book_v1_search():
+    keywords = request.args.get('keyword')
+    book_query = Book.query
+    if not keywords:
+        tmp_data = book_query.all()
+    else:
+        tmp_data = book_query.join(Author).join(Category).filter(
+            or_(
+                Book.name.contains(keywords),               # 书名搜索
+                Author.name.contains(keywords),             # 作者搜索
+                Category.content.contains(keywords)         # 内容搜索
+            )
+        ).all()
+
+    results_list = [item.to_json() for item in tmp_data]
+    return return_json(data=results_list)
 
 
 # 获取所有章节、创建章节
